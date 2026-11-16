@@ -38,14 +38,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check Vercel CLI credentials
+        id: vercel_check
+        run: |
+          if [ -z "${VERCEL_TOKEN:-}" ] || [ -z "${VERCEL_ORG_ID:-}" ] || [ -z "${VERCEL_PROJECT_ID:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Skipping GitHub Actions Vercel CLI deploy: configure VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID in GitHub repository secrets (or rely on Vercel Git Integration if connected)."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.vercel_check.outputs.ready == 'true'
+        with:
+          python-version: "3.12"
+
       - name: Install Vercel CLI
+        if: steps.vercel_check.outputs.ready == 'true'
         run: npm install -g vercel@65.16.0
 
       - name: Pull Vercel environment
+        if: steps.vercel_check.outputs.ready == 'true'
         run: vercel pull --yes --environment=production
 
       - name: Build prebuilt deployment
+        if: steps.vercel_check.outputs.ready == 'true'
         run: vercel build --prod
 
       - name: Deploy to Vercel production
+        if: steps.vercel_check.outputs.ready == 'true'
         run: vercel deploy --prebuilt --prod
