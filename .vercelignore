@@ -1,0 +1,12 @@
+.venv/
+tests/
+.pytest_cache/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+supabase/
+scripts/
+*.md
+.ruff_cache/
